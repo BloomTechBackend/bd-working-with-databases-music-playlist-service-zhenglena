@@ -1,1 +1,97 @@
-PARTICIPANTS: use this file for creating the class diagram in mastery task 01
+@startuml
+class Playlist {
+-@DynamoDBHashKey id : String
+-name : String
+-customerId : String
+-songCount : Integer
+-tags : Set<String>
+-songList : List<AlbumTrack>
+
++getId() : String
++setId(id : String)
++getName() : String
++setName(name : String)
++getSongCount() : Integer
++setSongCount(songCount : String)
++getTags() : List<String>
++setTags(tags : List<String>)
++getSongList() : List<AlbumTrack>
++setSongList(songList : List<AlbumTrack>)
+}
+Playlist --> AlbumTrack
+
+class PlaylistDao {
+-dynamoDbMapper : DynamoDBMapper
++getPlaylist(id : String) : Playlist
+}
+PlaylistDao --> Playlist
+
+class UpdatePlaylistActivity {
+-log : Logger
+-playlistDao : PlaylistDao
++handleRequest(updatePlaylistRequest : UpdatePlaylistRequest, context : Context) : UpdatePlaylistResult
+}
+UpdatePlaylistActivity --> PlaylistDao
+
+class GetPlaylistSongsActivity {
+-log : Logger
+-playlistDao : PlaylistDao
++handleRequest(getPlaylistSongsRequest : GetPlaylistSongsRequest, context : Context) : GetPlaylistSongsResult
+}
+GetPlaylistSongsActivity --> PlaylistDao
+
+class GetPlaylistActivity {
+-log : Logger
+-playlistDao : PlaylistDao
++handleRequest(getPlaylistRequest : GetPlaylistRequest, context : Context) : GetPlaylistResult
+}
+GetPlaylistActivity --> PlaylistDao
+
+class CreatePlaylistActivity {
+-log : Logger
+-playlistDao : PlaylistDao
++handleRequest(createPlaylistRequest : CreatePlaylistRequest, context : Context) : CreatePlaylistResult
+}
+CreatePlaylistActivity --> PlaylistDao
+
+class AddSongToPlaylistActivity {
+-log : Logger
+-playlistDao : PlaylistDao
+-albumTrackDao : AlbumTrackDao
++handleRequest(addSongToPlaylistRequest : AddSongToPlaylistRequest, context : Context) : AddSongToPlaylistResult
+}
+AddSongToPlaylistActivity --> PlaylistDao
+AddSongToPlaylistActivity --> AlbumTrackDao
+
+class AlbumTrack {
+-@DynamoDBHashKey asin : String
+-@DynamoDBRangeKey trackNumber : Integer
+-albumName : String
+-songTitle : String
+
++getAsin() : String
++setAsin(asin : String)
++getTrackNumber() : Integer
++setTrackNumber(trackNumber : Integer)
++getAlbumName() : String
++setAlbumName(albumName : String)
++getSongTitle() : String
++setSongTitle(songTitle : String)
+}
+AlbumTrackDao --> AlbumTrack
+class AlbumTrackDao {
+-dynamoDbMapper : DynamoDBMapper
+}
+
+class AlbumTrackNotFoundException {}
+class InvalidAttributeValueException {}
+class PlaylistNotFoundException {}
+
+
+
+
+
+
+
+
+@enduml
