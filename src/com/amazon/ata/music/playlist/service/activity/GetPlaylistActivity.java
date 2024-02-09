@@ -7,6 +7,11 @@ import com.amazon.ata.music.playlist.service.converters.ModelConverter;
 import com.amazon.ata.music.playlist.service.dynamodb.PlaylistDao;
 import com.amazon.ata.music.playlist.service.dynamodb.models.Playlist;
 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.apache.logging.log4j.LogManager;
@@ -20,6 +25,13 @@ import org.apache.logging.log4j.Logger;
 public class GetPlaylistActivity implements RequestHandler<GetPlaylistRequest, GetPlaylistResult> {
     private final Logger log = LogManager.getLogger();
     private final PlaylistDao playlistDao;
+
+    public GetPlaylistActivity() {
+        this.playlistDao = new PlaylistDao(new DynamoDBMapper((AmazonDynamoDB) ((AmazonDynamoDBClientBuilder)
+                ((AmazonDynamoDBClientBuilder) AmazonDynamoDBClientBuilder.standard()
+                        .withCredentials(DefaultAWSCredentialsProviderChain.getInstance()))
+                        .withRegion(Regions.US_WEST_2)).build()));
+    }
 
     /**
      * Instantiates a new GetPlaylistActivity object.
