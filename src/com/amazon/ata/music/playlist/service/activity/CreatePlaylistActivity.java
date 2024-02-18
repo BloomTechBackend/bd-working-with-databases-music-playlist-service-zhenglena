@@ -69,7 +69,7 @@ public class CreatePlaylistActivity implements RequestHandler<CreatePlaylistRequ
         Set<String> listOfTags = null;
         if (!MusicPlaylistServiceUtils.isValidString(createPlaylistRequest.getName()) ||
                 !MusicPlaylistServiceUtils.isValidString(createPlaylistRequest.getCustomerId())) {
-            throw new InvalidAttributeValueException("Playlist name or id may not contain characters \", ', or \\");
+            throw new InvalidAttributeValueException("CreatePlaylistRequest name or id may not contain characters \", ', or \\");
         }
         if (createPlaylistRequest.getTags() != null && !createPlaylistRequest.getTags().isEmpty()) {
             listOfTags = new HashSet<>(createPlaylistRequest.getTags());

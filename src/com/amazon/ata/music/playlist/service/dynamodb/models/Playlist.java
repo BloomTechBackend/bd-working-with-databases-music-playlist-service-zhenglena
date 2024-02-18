@@ -60,9 +60,6 @@ public class Playlist {
 
     @DynamoDBAttribute(attributeName = "tags")
     public Set<String> getTags() {
-        if (tags.isEmpty()) {
-            return null;
-        }
         return tags;
     }
 

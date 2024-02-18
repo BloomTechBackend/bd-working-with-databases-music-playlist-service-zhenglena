@@ -86,6 +86,11 @@ class AlbumTrackDao {
 class AlbumTrackNotFoundException {}
 class InvalidAttributeValueException {}
 class PlaylistNotFoundException {}
+class InvalidAttributeChangeException {}
+class InvalidAttributeException {}
+InvalidAttributeException <|-- InvalidAttributeChangeException
+InvalidAttributeException <|-- InvalidAttributeValueException
+
 
 
 

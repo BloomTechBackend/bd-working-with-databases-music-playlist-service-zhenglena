@@ -1,10 +1,21 @@
 package com.amazon.ata.music.playlist.service.activity;
 
+import com.amazon.ata.music.playlist.service.converters.ModelConverter;
+import com.amazon.ata.music.playlist.service.dynamodb.models.Playlist;
+import com.amazon.ata.music.playlist.service.exceptions.InvalidAttributeChangeException;
+import com.amazon.ata.music.playlist.service.exceptions.InvalidAttributeValueException;
+import com.amazon.ata.music.playlist.service.exceptions.PlaylistNotFoundException;
 import com.amazon.ata.music.playlist.service.models.PlaylistModel;
 import com.amazon.ata.music.playlist.service.models.requests.UpdatePlaylistRequest;
 import com.amazon.ata.music.playlist.service.models.results.UpdatePlaylistResult;
 import com.amazon.ata.music.playlist.service.dynamodb.PlaylistDao;
 
+import com.amazon.ata.music.playlist.service.util.MusicPlaylistServiceUtils;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +29,13 @@ import org.apache.logging.log4j.Logger;
 public class UpdatePlaylistActivity implements RequestHandler<UpdatePlaylistRequest, UpdatePlaylistResult> {
     private final Logger log = LogManager.getLogger();
     private final PlaylistDao playlistDao;
+
+    public UpdatePlaylistActivity() {
+        this.playlistDao = new PlaylistDao(new DynamoDBMapper((AmazonDynamoDB) ((AmazonDynamoDBClientBuilder)
+                ((AmazonDynamoDBClientBuilder) AmazonDynamoDBClientBuilder.standard()
+                        .withCredentials(DefaultAWSCredentialsProviderChain.getInstance()))
+                        .withRegion(Regions.US_WEST_2)).build()));
+    }
 
     /**
      * Instantiates a new UpdatePlaylistActivity object.
@@ -50,8 +68,28 @@ public class UpdatePlaylistActivity implements RequestHandler<UpdatePlaylistRequ
     public UpdatePlaylistResult handleRequest(final UpdatePlaylistRequest updatePlaylistRequest, Context context) {
         log.info("Received UpdatePlaylistRequest {}", updatePlaylistRequest);
 
+        Playlist updatedPlaylist = playlistDao.getPlaylist(updatePlaylistRequest.getId());
+
+        // if they can't find the playlist on DynamoDB, throw exception
+        if (updatedPlaylist == null) {
+            throw new PlaylistNotFoundException("Playlist does not exist");
+        }
+        // if the request's provided customer id and playlist name contains " ' or \, throw exception
+        if (!MusicPlaylistServiceUtils.isValidString(updatePlaylistRequest.getName()) ||
+                !MusicPlaylistServiceUtils.isValidString(updatePlaylistRequest.getCustomerId())) {
+            throw new InvalidAttributeValueException("UpdatePlaylistRequest name or id may not contain characters \", ', or \\");
+        }
+        // if the request's provided customer id is different from the playlist loaded in, throw exception
+        if (!updatedPlaylist.getCustomerId().equals(updatePlaylistRequest.getCustomerId())) {
+            throw new InvalidAttributeChangeException("UpdatePlaylistRequest customer ID may not be changed.");
+        }
+
+        //only update the playlist name right now.
+        updatedPlaylist.setName(updatePlaylistRequest.getName());
+
+        playlistDao.savePlaylist(updatedPlaylist);
         return UpdatePlaylistResult.builder()
-                .withPlaylist(new PlaylistModel())
+                .withPlaylist(new ModelConverter().toPlaylistModel(updatedPlaylist))
                 .build();
     }
 }
