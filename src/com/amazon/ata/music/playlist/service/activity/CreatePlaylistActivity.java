@@ -19,6 +19,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,18 +33,12 @@ public class CreatePlaylistActivity implements RequestHandler<CreatePlaylistRequ
     private final Logger log = LogManager.getLogger();
     private final PlaylistDao playlistDao;
 
-    public CreatePlaylistActivity() {
-        this.playlistDao = new PlaylistDao(new DynamoDBMapper((AmazonDynamoDB) ((AmazonDynamoDBClientBuilder)
-                ((AmazonDynamoDBClientBuilder) AmazonDynamoDBClientBuilder.standard()
-                        .withCredentials(DefaultAWSCredentialsProviderChain.getInstance()))
-                        .withRegion(Regions.US_WEST_2)).build()));
-    }
-
     /**
      * Instantiates a new CreatePlaylistActivity object.
      *
      * @param playlistDao PlaylistDao to access the playlists table.
      */
+    @Inject
     public CreatePlaylistActivity(PlaylistDao playlistDao) {
         this.playlistDao = playlistDao;
     }

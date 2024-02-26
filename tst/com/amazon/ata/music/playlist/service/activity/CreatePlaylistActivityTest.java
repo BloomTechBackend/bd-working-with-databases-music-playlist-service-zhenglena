@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 
@@ -31,7 +32,6 @@ public class CreatePlaylistActivityTest {
     @Test
     public void handleRequest_createdPlaylist_returnsPlaylistRequest() {
         // GIVEN
-        String expectedId = "expectedId";
         String expectedName = "expectedName";
         String expectedCustomerId = "expectedCustomerId";
         List<String> expectedTags = new ArrayList<>();
@@ -56,6 +56,30 @@ public class CreatePlaylistActivityTest {
         assertEquals(expectedName, result.getPlaylist().getName());
         assertEquals(expectedCustomerId, result.getPlaylist().getCustomerId());
         assertEquals(expectedTags, result.getPlaylist().getTags());
+
+    }
+
+    @Test
+    public void handleRequest_createPlaylistWithoutTags_ReturnsPlaylistWithNullTags() {
+        // GIVEN
+        String expectedName = "expectedName";
+        String expectedCustomerId = "expectedCustomerId";
+
+        Playlist playlist = new Playlist();
+        playlist.setName(expectedName);
+        playlist.setCustomerId(expectedCustomerId);
+        playlist.setSongCount(0);
+
+        CreatePlaylistRequest request = CreatePlaylistRequest.builder()
+                .withCustomerId(expectedCustomerId)
+                .withName(expectedName)
+                .build();
+
+        // WHEN
+        CreatePlaylistResult result = createPlaylistActivity.handleRequest(request, null);
+
+        // THEN
+        assertNull(result.getPlaylist().getTags());
 
     }
 }
