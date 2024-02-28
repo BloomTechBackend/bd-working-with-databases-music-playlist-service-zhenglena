@@ -35,7 +35,6 @@ public class PlaylistDao {
         if (playlist == null) {
             throw new PlaylistNotFoundException("Could not find playlist with id " + id);
         }
-
         return playlist;
     }
 

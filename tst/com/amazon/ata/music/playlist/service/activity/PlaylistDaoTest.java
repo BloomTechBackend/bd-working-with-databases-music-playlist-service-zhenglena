@@ -3,6 +3,7 @@ package com.amazon.ata.music.playlist.service.activity;
 import com.amazon.ata.music.playlist.service.dynamodb.PlaylistDao;
 import com.amazon.ata.music.playlist.service.dynamodb.models.Playlist;
 import com.amazon.ata.music.playlist.service.exceptions.PlaylistNotFoundException;
+import com.amazon.ata.music.playlist.service.helpers.PlaylistTestHelper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,14 +33,8 @@ public class PlaylistDaoTest {
     void setUp() {
         initMocks(this);
 
-        playlistId = "id";
-        listOfTags = Set.of("tag");
-        expectedPlaylist = new Playlist();
-        expectedPlaylist.setSongCount(0);
-        expectedPlaylist.setTags(listOfTags);
-        expectedPlaylist.setName("name");
-        expectedPlaylist.setId(playlistId);
-        expectedPlaylist.setCustomerId("customerId");
+        expectedPlaylist = PlaylistTestHelper.generatePlaylist();
+        playlistId = expectedPlaylist.getId();
     }
 
     @Test

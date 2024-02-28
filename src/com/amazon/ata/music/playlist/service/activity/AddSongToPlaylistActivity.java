@@ -1,18 +1,32 @@
 package com.amazon.ata.music.playlist.service.activity;
 
+import com.amazon.ata.music.playlist.service.converters.ModelConverter;
+import com.amazon.ata.music.playlist.service.dependency.DaggerServiceComponent;
+import com.amazon.ata.music.playlist.service.dependency.ServiceComponent;
+import com.amazon.ata.music.playlist.service.dynamodb.models.AlbumTrack;
+import com.amazon.ata.music.playlist.service.dynamodb.models.Playlist;
+import com.amazon.ata.music.playlist.service.exceptions.AlbumTrackNotFoundException;
+import com.amazon.ata.music.playlist.service.exceptions.PlaylistNotFoundException;
 import com.amazon.ata.music.playlist.service.models.requests.AddSongToPlaylistRequest;
 import com.amazon.ata.music.playlist.service.models.results.AddSongToPlaylistResult;
 import com.amazon.ata.music.playlist.service.models.SongModel;
 import com.amazon.ata.music.playlist.service.dynamodb.AlbumTrackDao;
 import com.amazon.ata.music.playlist.service.dynamodb.PlaylistDao;
 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Implementation of the AddSongToPlaylistActivity for the MusicPlaylistService's AddSongToPlaylist API.
@@ -23,6 +37,16 @@ public class AddSongToPlaylistActivity implements RequestHandler<AddSongToPlayli
     private final Logger log = LogManager.getLogger();
     private final PlaylistDao playlistDao;
     private final AlbumTrackDao albumTrackDao;
+
+    //Needed for lambda function to work. Commented out because it might cause tests to fail
+//    public AddSongToPlaylistActivity() {
+//        DynamoDBMapper dynamoDBMapper = new DynamoDBMapper((AmazonDynamoDB) ((AmazonDynamoDBClientBuilder)
+//                ((AmazonDynamoDBClientBuilder) AmazonDynamoDBClientBuilder.standard()
+//                        .withCredentials(DefaultAWSCredentialsProviderChain.getInstance()))
+//                        .withRegion(Regions.US_WEST_2)).build());
+//        this.playlistDao = new PlaylistDao(dynamoDBMapper);
+//        this.albumTrackDao = new AlbumTrackDao(dynamoDBMapper);
+//    }
 
     /**
      * Instantiates a new AddSongToPlaylistActivity object.
@@ -55,8 +79,15 @@ public class AddSongToPlaylistActivity implements RequestHandler<AddSongToPlayli
     public AddSongToPlaylistResult handleRequest(final AddSongToPlaylistRequest addSongToPlaylistRequest, Context context) {
         log.info("Received AddSongToPlaylistRequest {} ", addSongToPlaylistRequest);
 
+        Playlist requestedPlaylist = playlistDao.getPlaylist(addSongToPlaylistRequest.getId());
+        AlbumTrack requestedTrack = albumTrackDao.getAlbumTrack(
+                addSongToPlaylistRequest.getAsin(), addSongToPlaylistRequest.getTrackNumber());
+
+        requestedPlaylist.getSongList().add(requestedTrack); //adds to the end of the playlist
+        playlistDao.savePlaylist(requestedPlaylist);
+
         return AddSongToPlaylistResult.builder()
-                .withSongList(Collections.singletonList(new SongModel()))
+                .withSongList(new ModelConverter().toSongModelList(requestedPlaylist.getSongList()))
                 .build();
     }
 }

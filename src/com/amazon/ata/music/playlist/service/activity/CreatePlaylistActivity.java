@@ -86,10 +86,9 @@ public class CreatePlaylistActivity implements RequestHandler<CreatePlaylistRequ
         playlist.setSongList(new ArrayList<>());
         playlist.setSongCount(0);
 
-        ModelConverter modelConverter = new ModelConverter();
         playlistDao.savePlaylist(playlist);
         return CreatePlaylistResult.builder()
-                .withPlaylist(modelConverter.toPlaylistModel(playlist))
+                .withPlaylist(new ModelConverter().toPlaylistModel(playlist))
                 .build();
     }
 }
