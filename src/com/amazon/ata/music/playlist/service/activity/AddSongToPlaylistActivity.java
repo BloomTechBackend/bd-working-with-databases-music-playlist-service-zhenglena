@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -83,11 +84,17 @@ public class AddSongToPlaylistActivity implements RequestHandler<AddSongToPlayli
         AlbumTrack requestedTrack = albumTrackDao.getAlbumTrack(
                 addSongToPlaylistRequest.getAsin(), addSongToPlaylistRequest.getTrackNumber());
 
-        requestedPlaylist.getSongList().add(requestedTrack); //adds to the end of the playlist
+//        requestedPlaylist.getSongList().add(requestedTrack); //adds to the end of the playlist
+        List<AlbumTrack> albumTrackLinkedList = requestedPlaylist.getSongList();
+        if (addSongToPlaylistRequest.isQueueNext()) {
+            ((LinkedList<AlbumTrack>) albumTrackLinkedList).addFirst(requestedTrack);
+        } else {
+            ((LinkedList<AlbumTrack>) albumTrackLinkedList).addLast(requestedTrack);
+        }
         playlistDao.savePlaylist(requestedPlaylist);
 
         return AddSongToPlaylistResult.builder()
-                .withSongList(new ModelConverter().toSongModelList(requestedPlaylist.getSongList()))
+                .withSongList(new ModelConverter().toSongModelList(albumTrackLinkedList))
                 .build();
     }
 }
